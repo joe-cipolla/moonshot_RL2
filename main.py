@@ -32,7 +32,7 @@ class ActionValueNetwork:
         self.rand_generator = np.random.RandomState(network_config.get("seed"))
         
         # Specify self.layer_size which shows the number of nodes in each layer
-        self.layer_sizes = self.num_actions * self.num_hidden_units
+        self.layer_sizes = self.num_actions * self.num_hidden_units * self.state_dim
         
         # Initialize the weights of the neural network
         # self.weights is an array of dictionaries with each dictionary corresponding to 
