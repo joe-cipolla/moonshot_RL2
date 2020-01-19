@@ -22,7 +22,8 @@ import shutil
 from plot_script import plot_result
 
 
-
+# Action-Value Network
+# Neural network function approximator for Agent.
 class ActionValueNetwork:
     def __init__(self, network_config):
         self.state_dim = network_config.get("state_dim")
@@ -130,10 +131,9 @@ class ActionValueNetwork:
 
 
 ## Test Code for ActionValueNetwork __init__() ## 
-
+#
 # NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
 # to test your implementations more carefully for correctness.
-
 network_config = {
     "state_dim": 5,
     "num_hidden_units": 20,
@@ -148,7 +148,11 @@ print("Passed the asserts! (Note: These are however limited in scope, additional
 
 
 
-# Adam Optimizerr
+# Adam Optimizer
+#
+# The Adam algorithm is a more advanced variant of stochastic gradient descent (SGD).
+# The Adam algorithm improves the SGD update with two concepts: adaptive vector stepsizes and momentum. It keeps 
+# running estimates of the mean and second moment of the updates, denoted by m and v respectively.
 class Adam():
     def __init__(self, layer_sizes, 
                  optimizer_info):
@@ -204,10 +208,9 @@ class Adam():
 
 
 ## Test Code for Adam __init__() ##
-
+#
 # NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
 # to test your implementations more carefully for correctness.
-
 network_config = {"state_dim": 5,
                   "num_hidden_units": 2,
                   "num_actions": 3
@@ -256,7 +259,6 @@ print("Passed the asserts! (Note: These are however limited in scope, additional
 
 
 ## Test Code for Adam update_weights() ##
-
 network_config = {"state_dim": 5,
                   "num_hidden_units": 2,
                   "num_actions": 3
@@ -319,6 +321,12 @@ print("Passed the asserts! (Note: These are however limited in scope, additional
 
 
 # Experience Replay Buffers
+#
+# Experience replay is a simple method that can get some of the advantages of Dyna by saving a buffer of experience 
+# and using the data stored in the buffer as a model. This view of prior data as a model works because the data 
+# represents actual transitions from the underlying MDP. Furthermore, as a side note, this kind of model that is 
+# not learned and simply a collection of experience can be called non-parametric as it can be ever-growing as opposed 
+# to a parametric model where the transitions are learned to be represented with a fixed set of parameters or weights.
 class ReplayBuffer:
     def __init__(self, size, minibatch_size, seed):
         """
@@ -355,4 +363,7 @@ class ReplayBuffer:
 
     def size(self):
         return len(self.buffer)
+
+
+# Softmax policy
 
