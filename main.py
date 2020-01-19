@@ -586,4 +586,47 @@ def optimize_network(experiences, discount, optimizer, network, current_q, tau):
     network.set_weights(weights)
 
 
+## Test Code for optimize_network() ##
+#
+# NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
+# to test your implementations more carefully for correctness.
 
+input_data = np.load("asserts/optimize_network_input_1.npz", allow_pickle=True)
+
+experiences = list(input_data["experiences"])
+discount = input_data["discount"]
+tau = 0.001
+
+network_config = {"state_dim": 8,
+                  "num_hidden_units": 512,
+                  "num_actions": 4
+                  }
+
+network = ActionValueNetwork(network_config)
+network.set_weights(input_data["network_weights"])
+
+current_q = ActionValueNetwork(network_config)
+current_q.set_weights(input_data["current_q_weights"])
+
+optimizer_config = {'step_size': 3e-5, 
+                    'beta_m': 0.9, 
+                    'beta_v': 0.999,
+                    'epsilon': 1e-8
+                   }
+optimizer = Adam(network.layer_sizes, optimizer_config)
+optimizer.m = input_data["optimizer_m"]
+optimizer.v = input_data["optimizer_v"]
+optimizer.beta_m_product = input_data["optimizer_beta_m_product"]
+optimizer.beta_v_product = input_data["optimizer_beta_v_product"]
+
+optimize_network(experiences, discount, optimizer, network, current_q, tau)
+updated_weights = network.get_weights()
+
+output_data = np.load("asserts/optimize_network_output_1.npz", allow_pickle=True)
+answer_updated_weights = output_data["updated_weights"]
+
+assert(np.allclose(updated_weights[0]["W"], answer_updated_weights[0]["W"]))
+assert(np.allclose(updated_weights[0]["b"], answer_updated_weights[0]["b"]))
+assert(np.allclose(updated_weights[1]["W"], answer_updated_weights[1]["W"]))
+assert(np.allclose(updated_weights[1]["b"], answer_updated_weights[1]["b"]))
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
