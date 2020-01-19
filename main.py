@@ -24,6 +24,7 @@ from plot_script import plot_result
 
 # Action-Value Network
 # Neural network function approximator for Agent.
+
 class ActionValueNetwork:
     def __init__(self, network_config):
         self.state_dim = network_config.get("state_dim")
@@ -153,6 +154,7 @@ print("Passed the asserts! (Note: These are however limited in scope, additional
 # The Adam algorithm is a more advanced variant of stochastic gradient descent (SGD).
 # The Adam algorithm improves the SGD update with two concepts: adaptive vector stepsizes and momentum. It keeps 
 # running estimates of the mean and second moment of the updates, denoted by m and v respectively.
+
 class Adam():
     def __init__(self, layer_sizes, 
                  optimizer_info):
@@ -327,6 +329,7 @@ print("Passed the asserts! (Note: These are however limited in scope, additional
 # represents actual transitions from the underlying MDP. Furthermore, as a side note, this kind of model that is 
 # not learned and simply a collection of experience can be called non-parametric as it can be ever-growing as opposed 
 # to a parametric model where the transitions are learned to be represented with a fixed set of parameters or weights.
+
 class ReplayBuffer:
     def __init__(self, size, minibatch_size, seed):
         """
@@ -378,6 +381,7 @@ class ReplayBuffer:
 #
 # Given that a softmax policy exponentiates action values, if those values are large, exponentiating them could get very large. 
 # To implement the softmax policy in a numerically stable way, we often subtract the maximum action-value from the action-values.
+
 def softmax(action_values, tau=1.0):
     """
     Args:
@@ -433,5 +437,79 @@ assert(np.allclose(action_probs, np.array([
 ])))
 
 print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
+
+
+
+### RL_Glue Agent ###
+#
+# The main component that you will implement is the action-value network updates with experience sampled 
+# from the experience replay buffer.
+#
+# At time t , we have an action-value function represented as a neural network, say Q_t. We want to update our 
+# action-value function and get a new one we can use at the next timestep. We will get this  Q_t+1  using multiple 
+# replay steps that each result in an intermediate action-value function  Qi_t+1  where  i  indexes which replay step we are at.
+# 
+# In each replay step, we sample a batch of experiences from the replay buffer and compute a minibatch Expected-SARSA update. 
+# Across these N replay steps, we will use the current "un-updated" action-value network at time  t ,  Q_t , for computing 
+# the action-values of the next-states. This contrasts using the most recent action-values from the last replay step  Qi_t+1 . 
+# We make this choice to have targets that are stable across replay steps.
+
+def get_td_error(states, next_states, actions, rewards, discount, terminals, network, current_q, tau):
+    """
+    Args:
+        states (Numpy array): The batch of states with the shape (batch_size, state_dim).
+        next_states (Numpy array): The batch of next states with the shape (batch_size, state_dim).
+        actions (Numpy array): The batch of actions with the shape (batch_size,).
+        rewards (Numpy array): The batch of rewards with the shape (batch_size,).
+        discount (float): The discount factor.
+        terminals (Numpy array): The batch of terminals with the shape (batch_size,).
+        network (ActionValueNetwork): The latest state of the network that is getting replay updates.
+        current_q (ActionValueNetwork): The fixed network used for computing the targets, 
+                                        and particularly, the action-values at the next-states.
+    Returns:
+        The TD errors (Numpy array) for actions taken, of shape (batch_size,)
+    """
+    
+    # Note: Here network is the latest state of the network that is getting replay updates. In other words, 
+    # the network represents Q_{t+1}^{i} whereas current_q represents Q_t, the fixed network used for computing the 
+    # targets, and particularly, the action-values at the next-states.
+    
+    # Compute action values at next states using current_q network
+    # Note that q_next_mat is a 2D array of shape (batch_size, num_actions)    
+    q_next_mat = current_q.get_action_values(next_states)
+    
+    # Compute policy at next state by passing the action-values in q_next_mat to softmax()
+    # Note that probs_mat is a 2D array of shape (batch_size, num_actions)
+    probs_mat = softmax(q_next_mat,tau)
+    
+    # Compute the estimate of the next state value, v_next_vec.
+    # Hint: sum the action-values for the next_states weighted by the policy, probs_mat. Then, multiply by
+    # (1 - terminals) to make sure v_next_vec is zero for terminal next states.
+    # Note that v_next_vec is a 1D array of shape (batch_size,)
+    weighted_next_mat = q_next_mat * probs_mat
+    action_values_sum = np.sum(weighted_next_mat, axis=1)
+    v_next_vec = action_values_sum * (1-terminals)
+    
+    # Compute Expected Sarsa target
+    # Note that target_vec is a 1D array of shape (batch_size,)
+    target_vec = rewards + (discount * v_next_vec)
+    
+    # Compute action values at the current states for all actions using network
+    # Note that q_mat is a 2D array of shape (batch_size, num_actions)
+    q_mat = network.get_action_values(states)
+    
+    # Batch Indices is an array from 0 to the batch size - 1. 
+    batch_indices = np.arange(q_mat.shape[0])
+
+    # Compute q_vec by selecting q(s, a) from q_mat for taken actions
+    # Use batch_indices as the index for the first dimension of q_mat
+    # Note that q_vec is a 1D array of shape (batch_size)
+    q_vec = q_mat[batch_indices, actions]
+    
+    # Compute TD errors for actions taken
+    # Note that delta_vec is a 1D array of shape (batch_size)
+    delta_vec = target_vec - q_vec
+    
+    return delta_vec
 
 
