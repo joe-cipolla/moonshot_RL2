@@ -203,4 +203,54 @@ class Adam():
         return weights
 
 
+## Test Code for Adam __init__() ##
+
+# NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
+# to test your implementations more carefully for correctness.
+
+network_config = {"state_dim": 5,
+                  "num_hidden_units": 2,
+                  "num_actions": 3
+                 }
+
+optimizer_info = {"step_size": 0.1,
+                  "beta_m": 0.99,
+                  "beta_v": 0.999,
+                  "epsilon": 0.0001
+                 }
+
+network = ActionValueNetwork(network_config)
+test_adam = Adam(network.layer_sizes, optimizer_info)
+
+print("m[0][\"W\"] shape: {}".format(test_adam.m[0]["W"].shape))
+print("m[0][\"b\"] shape: {}".format(test_adam.m[0]["b"].shape))
+print("m[1][\"W\"] shape: {}".format(test_adam.m[1]["W"].shape))
+print("m[1][\"b\"] shape: {}".format(test_adam.m[1]["b"].shape), "\n")
+
+assert(np.allclose(test_adam.m[0]["W"].shape, np.array([5, 2])))
+assert(np.allclose(test_adam.m[0]["b"].shape, np.array([1, 2])))
+assert(np.allclose(test_adam.m[1]["W"].shape, np.array([2, 3])))
+assert(np.allclose(test_adam.m[1]["b"].shape, np.array([1, 3])))
+
+print("v[0][\"W\"] shape: {}".format(test_adam.v[0]["W"].shape))
+print("v[0][\"b\"] shape: {}".format(test_adam.v[0]["b"].shape))
+print("v[1][\"W\"] shape: {}".format(test_adam.v[1]["W"].shape))
+print("v[1][\"b\"] shape: {}".format(test_adam.v[1]["b"].shape), "\n")
+
+assert(np.allclose(test_adam.v[0]["W"].shape, np.array([5, 2])))
+assert(np.allclose(test_adam.v[0]["b"].shape, np.array([1, 2])))
+assert(np.allclose(test_adam.v[1]["W"].shape, np.array([2, 3])))
+assert(np.allclose(test_adam.v[1]["b"].shape, np.array([1, 3])))
+
+assert(np.all(test_adam.m[0]["W"]==0))
+assert(np.all(test_adam.m[0]["b"]==0))
+assert(np.all(test_adam.m[1]["W"]==0))
+assert(np.all(test_adam.m[1]["b"]==0))
+
+assert(np.all(test_adam.v[0]["W"]==0))
+assert(np.all(test_adam.v[0]["b"]==0))
+assert(np.all(test_adam.v[1]["W"]==0))
+assert(np.all(test_adam.v[1]["b"]==0))
+
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
 
