@@ -850,3 +850,75 @@ for i in range(5):
 
 print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
 
+
+## Test Code for agent_end() ## 
+#
+# NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
+# to test your implementations more carefully for correctness.
+
+agent_info = {
+             'network_config': {
+                 'state_dim': 8,
+                 'num_hidden_units': 256,
+                 'num_hidden_layers': 1,
+                 'num_actions': 4
+             },
+             'optimizer_config': {
+                 'step_size': 3e-5, 
+                 'beta_m': 0.9, 
+                 'beta_v': 0.999,
+                 'epsilon': 1e-8
+             },
+             'replay_buffer_size': 32,
+             'minibatch_sz': 32,
+             'num_replay_updates_per_step': 4,
+             'gamma': 0.99,
+             'tau': 1000,
+             'seed': 0
+             }
+
+# Initialize agent
+agent = Agent()
+agent.agent_init(agent_info)
+
+# load agent network, optimizer, replay_buffer from the agent_input_1.npz file
+input_data = np.load("asserts/agent_input_1.npz", allow_pickle=True)
+agent.network.set_weights(input_data["network_weights"])
+agent.optimizer.m = input_data["optimizer_m"]
+agent.optimizer.v = input_data["optimizer_v"]
+agent.optimizer.beta_m_product = input_data["optimizer_beta_m_product"]
+agent.optimizer.beta_v_product = input_data["optimizer_beta_v_product"]
+agent.replay_buffer.rand_generator.seed(int(input_data["replay_buffer_seed"]))
+for experience in input_data["replay_buffer"]:
+    agent.replay_buffer.buffer.append(experience)
+
+# Perform agent_step multiple times
+last_state_array = input_data["last_state_array"]
+last_action_array = input_data["last_action_array"]
+state_array = input_data["state_array"]
+reward_array = input_data["reward_array"]
+
+for i in range(5):
+    agent.last_state = last_state_array[i]
+    agent.last_action = last_action_array[i]
+    reward = reward_array[i]
+    
+    agent.agent_end(reward)
+
+    # Load expected values for last_state, last_action, weights, and replay_buffer 
+    output_data = np.load("asserts/agent_end_output_{}.npz".format(i), allow_pickle=True)
+    answer_updated_weights = output_data["updated_weights"]
+    answer_replay_buffer = output_data["replay_buffer"]
+
+    # Asserts for replay_buffer 
+    for i in range(answer_replay_buffer.shape[0]):
+        for j in range(answer_replay_buffer.shape[1]):
+            assert(np.allclose(np.asarray(agent.replay_buffer.buffer)[i, j], answer_replay_buffer[i, j]))
+
+    # Asserts for network.weights
+    assert(np.allclose(agent.network.weights[0]["W"], answer_updated_weights[0]["W"]))
+    assert(np.allclose(agent.network.weights[0]["b"], answer_updated_weights[0]["b"]))
+    assert(np.allclose(agent.network.weights[1]["W"], answer_updated_weights[1]["W"]))
+    assert(np.allclose(agent.network.weights[1]["b"], answer_updated_weights[1]["b"]))
+
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
