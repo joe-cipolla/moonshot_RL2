@@ -188,8 +188,8 @@ class Adam():
         """
         for i in range(len(weights)):
             for param in weights[i].keys():
-                self.m[i][param] = (self.beta_m * self.m[i][param]) + ((1 - self.beta_m )*td_errors_times_gradients)
-                self.v[i][param] = (self.beta_v * selfv[i][param]) + ((1 - self.beta_v )*(td_errors_times_gradients ** 2))
+                self.m[i][param] = (self.beta_m * self.m[i][param]) + ((1 - self.beta_m )*td_errors_times_gradients[i][param])
+                self.v[i][param] = (self.beta_v * selfv[i][param]) + ((1 - self.beta_v )*(td_errors_times_gradients[i][param] ** 2))
                 m_hat = self.m[i][param] / (1 - self.beta_m_product)
                 v_hat = self.v[i][param] / (1 - self.beta_v_product)
                 weight_update = (self.step_size / (np.sqrt(v_hat) + self.epsilon) ) * m_hat
@@ -253,4 +253,5 @@ assert(np.all(test_adam.v[1]["W"]==0))
 assert(np.all(test_adam.v[1]["b"]==0))
 
 print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
+
 
