@@ -416,6 +416,22 @@ def softmax(action_values, tau=1.0):
     return action_probs
 
 
+## Test Code for softmax() ##
+#
+# NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
+# to test your implementations more carefully for correctness.
+rand_generator = np.random.RandomState(0)
+action_values = rand_generator.normal(0, 1, (2, 4))
+tau = 0.5
 
+action_probs = softmax(action_values, tau)
+print("action_probs", action_probs)
+
+assert(np.allclose(action_probs, np.array([
+    [0.25849645, 0.01689625, 0.05374514, 0.67086216],
+    [0.84699852, 0.00286345, 0.13520063, 0.01493741]
+])))
+
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
 
 
