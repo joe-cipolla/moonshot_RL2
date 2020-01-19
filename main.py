@@ -513,3 +513,36 @@ def get_td_error(states, next_states, actions, rewards, discount, terminals, net
     return delta_vec
 
 
+## Test Code for get_td_error() ##
+#
+# NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
+# to test your implementations more carefully for correctness.
+
+data = np.load("asserts/get_td_error_1.npz", allow_pickle=True)
+
+states = data["states"]
+next_states = data["next_states"]
+actions = data["actions"]
+rewards = data["rewards"]
+discount = data["discount"]
+terminals = data["terminals"]
+tau = 0.001
+
+network_config = {"state_dim": 8,
+                  "num_hidden_units": 512,
+                  "num_actions": 4
+                  }
+
+network = ActionValueNetwork(network_config)
+network.set_weights(data["network_weights"])
+
+current_q = ActionValueNetwork(network_config)
+current_q.set_weights(data["current_q_weights"])
+
+delta_vec = get_td_error(states, next_states, actions, rewards, discount, terminals, network, current_q, tau)
+answer_delta_vec = data["delta_vec"]
+
+assert(np.allclose(delta_vec, answer_delta_vec))
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
+
+
