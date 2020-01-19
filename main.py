@@ -255,3 +255,65 @@ assert(np.all(test_adam.v[1]["b"]==0))
 print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
 
 
+## Test Code for Adam update_weights() ##
+
+network_config = {"state_dim": 5,
+                  "num_hidden_units": 2,
+                  "num_actions": 3
+                 }
+
+optimizer_info = {"step_size": 0.1,
+                  "beta_m": 0.99,
+                  "beta_v": 0.999,
+                  "epsilon": 0.0001
+                 }
+
+network = ActionValueNetwork(network_config)
+test_adam = Adam(network.layer_sizes, optimizer_info)
+
+rand_generator = np.random.RandomState(0)
+
+# Initialize m and v
+test_adam.m[0]["W"] = rand_generator.normal(0, 1, (5, 2))
+test_adam.m[0]["b"] = rand_generator.normal(0, 1, (1, 2))
+test_adam.m[1]["W"] = rand_generator.normal(0, 1, (2, 3))
+test_adam.m[1]["b"] = rand_generator.normal(0, 1, (1, 3))
+
+test_adam.v[0]["W"] = np.abs(rand_generator.normal(0, 1, (5, 2)))
+test_adam.v[0]["b"] = np.abs(rand_generator.normal(0, 1, (1, 2)))
+test_adam.v[1]["W"] = np.abs(rand_generator.normal(0, 1, (2, 3)))
+test_adam.v[1]["b"] = np.abs(rand_generator.normal(0, 1, (1, 3)))
+
+# Specify weights
+weights = [dict() for i in range(1, len(test_adam.layer_sizes))]
+weights[0]["W"] = rand_generator.normal(0, 1, (5, 2))
+weights[0]["b"] = rand_generator.normal(0, 1, (1, 2))
+weights[1]["W"] = rand_generator.normal(0, 1, (2, 3))
+weights[1]["b"] = rand_generator.normal(0, 1, (1, 3))
+
+# Specify g
+g = [dict() for i in range(1, len(test_adam.layer_sizes))]
+g[0]["W"] = rand_generator.normal(0, 1, (5, 2))
+g[0]["b"] = rand_generator.normal(0, 1, (1, 2))
+g[1]["W"] = rand_generator.normal(0, 1, (2, 3))
+g[1]["b"] = rand_generator.normal(0, 1, (1, 3))
+
+# Update weights
+updated_weights = test_adam.update_weights(weights, g)
+
+# updated weights asserts
+updated_weights_answer = np.load("asserts/update_weights.npz")
+
+print("updated_weights[0][\"W\"]\n", updated_weights[0]["W"], "\n")
+print("updated_weights[0][\"b\"]\n", updated_weights[0]["b"], "\n")
+print("updated_weights[1][\"W\"]\n", updated_weights[1]["W"], "\n")
+print("updated_weights[1][\"b\"]\n", updated_weights[1]["b"], "\n")
+
+assert(np.allclose(updated_weights[0]["W"], updated_weights_answer["W0"]))
+assert(np.allclose(updated_weights[0]["b"], updated_weights_answer["b0"]))
+assert(np.allclose(updated_weights[1]["W"], updated_weights_answer["W1"]))
+assert(np.allclose(updated_weights[1]["b"], updated_weights_answer["b1"]))
+
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
+
+
