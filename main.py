@@ -127,3 +127,25 @@ class ActionValueNetwork:
         """
         self.weights = deepcopy(weights)
 
+
+
+## Test Code for ActionValueNetwork __init__() ## 
+
+# NOTE: The test below is limited in scope. Additional tests are used in the autograder, so it is recommended 
+# to test your implementations more carefully for correctness.
+
+network_config = {
+    "state_dim": 5,
+    "num_hidden_units": 20,
+    "num_actions": 3
+}
+
+test_network = ActionValueNetwork(network_config)
+print("layer_sizes:", test_network.layer_sizes)
+assert(np.allclose(test_network.layer_sizes, np.array([5, 20, 3])))
+
+print("Passed the asserts! (Note: These are however limited in scope, additional testing is encouraged.)")
+
+
+
+
