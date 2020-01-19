@@ -366,4 +366,56 @@ class ReplayBuffer:
 
 
 # Softmax policy
+# 
+# One advantage of a softmax policy is that it explores according to the action-values, meaning that an action 
+# with a moderate value has a higher chance of getting selected compared to an action with a lower value. 
+# Contrast this with an  𝜖 -greedy policy which does not consider the individual action values when choosing an 
+# exploratory action in a state and instead chooses randomly when doing so.
+#
+# Where tau (t) is the temperature parameter which controls how much the agent focuses on the highest valued actions. 
+# The smaller the temperature, the more the agent selects the greedy action. Conversely, when the temperature is high, 
+# the agent selects among actions more uniformly random.
+#
+# Given that a softmax policy exponentiates action values, if those values are large, exponentiating them could get very large. 
+# To implement the softmax policy in a numerically stable way, we often subtract the maximum action-value from the action-values.
+def softmax(action_values, tau=1.0):
+    """
+    Args:
+        action_values (Numpy array): A 2D array of shape (batch_size, num_actions). 
+                       The action-values computed by an action-value network.              
+        tau (float): The temperature parameter scalar.
+    Returns:
+        A 2D array of shape (batch_size, num_actions). Where each column is a probability distribution over
+        the actions representing the policy.
+    """
+    # Compute the preferences by dividing the action-values by the temperature parameter tau
+    preferences = action_values / tau
+    # Compute the maximum preference across the actions
+    max_preference = np.max(preferences, axis=1)
+    
+    # Reshape max_preference array which has shape [Batch,] to [Batch, 1]. This allows NumPy broadcasting 
+    # when subtracting the maximum preference from the preference of each action.
+    reshaped_max_preference = max_preference.reshape((-1, 1))
+    
+    # Compute the numerator, i.e., the exponential of the preference - the max preference.
+    exp_preferences = np.exp(preferences - reshaped_max_preference)
+    # Compute the denominator, i.e., the sum over the numerator along the actions axis.
+    sum_of_exp_preferences = np.sum(exp_preferences, axis=1)
+    
+    # Reshape sum_of_exp_preferences array which has shape [Batch,] to [Batch, 1] to  allow for NumPy broadcasting 
+    # when dividing the numerator by the denominator.
+    reshaped_sum_of_exp_preferences = sum_of_exp_preferences.reshape((-1, 1))
+    
+    # Compute the action probabilities according to the equation in the previous cell.
+    action_probs = exp_preferences / reshaped_sum_of_exp_preferences
+    
+    # squeeze() removes any singleton dimensions. It is used here because this function is used in the 
+    # agent policy when selecting an action (for which the batch dimension is 1.) As np.random.choice is used in 
+    # the agent policy and it expects 1D arrays, we need to remove this singleton batch dimension.
+    action_probs = action_probs.squeeze()
+    return action_probs
+
+
+
+
 
